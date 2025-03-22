@@ -43,3 +43,5 @@ case class Location(
                      city: String,
                      postal_code: String
                    )
+
+case class MetricsRecord(datasetName: String, recordCount: Long, totalAmount: Option[Double], processingTimestamp: java.sql.Timestamp)

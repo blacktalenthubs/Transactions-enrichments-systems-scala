@@ -11,16 +11,22 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    testImplementation {
+        extendsFrom configurations.compileOnly
+    }
+}
+
 configurations.all {
     resolutionStrategy {
         force 'com.fasterxml.jackson.core:jackson-databind:2.13.4',
-              'com.fasterxml.jackson.core:jackson-core:2.13.4',
-              'com.fasterxml.jackson.core:jackson-annotations:2.13.4',
-              'software.amazon.awssdk:s3:2.31.5',
-              'software.amazon.awssdk:sts:2.31.5',
-              'software.amazon.awssdk:glue:2.31.5',
-              'software.amazon.awssdk:kms:2.31.5',
-              'software.amazon.awssdk:url-connection-client:2.31.5'
+                'com.fasterxml.jackson.core:jackson-core:2.13.4',
+                'com.fasterxml.jackson.core:jackson-annotations:2.13.4',
+                'software.amazon.awssdk:s3:2.31.5',
+                'software.amazon.awssdk:sts:2.31.5',
+                'software.amazon.awssdk:glue:2.31.5',
+                'software.amazon.awssdk:kms:2.31.5',
+                'software.amazon.awssdk:url-connection-client:2.31.5'
     }
 }
 
@@ -52,12 +58,15 @@ dependencies {
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.scalatest:scalatest_2.12:3.2.15"
+    // Add the JUnit Jupiter Engine to provide a TestEngine for the JUnit Platform
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.9.2"
 }
 
 test {
     useJUnitPlatform()
 }
+
 application {
     mainClass = 'com.payment.merchants.UpstreamIngestions'
     applicationDefaultJvmArgs = ['--add-opens=java.base/sun.nio.ch=ALL-UNNAMED']

@@ -137,9 +137,9 @@ object UpstreamsDataProducer {
     val locationWrite = DatasetUtils.WriteDestinationConfig("data/transactions","dev.locations")
 
     import spark.implicits._
-    val txnDF   = spark.createDataset(users).withColumn("ingested_at", current_timestamp())
+    val txnDF   = spark.createDataset(transactions).withColumn("ingested_at", current_timestamp())
     val merchDF = spark.createDataset(merchants).withColumn("ingested_at", current_timestamp())
-    val userDF  = spark.createDataset(transactions).withColumn("ingested_at", current_timestamp())
+    val userDF  = spark.createDataset(users).withColumn("ingested_at", current_timestamp())
     val locDF   = spark.createDataset(locations).withColumn("ingested_at", current_timestamp())
 
     DatasetUtils.writeDataToStorage(txnDF,transWrite)
@@ -147,6 +147,10 @@ object UpstreamsDataProducer {
     DatasetUtils.writeDataToStorage(userDF,usersWrite)
     DatasetUtils.writeDataToStorage(locDF,locationWrite)
 
+
+    val aggregatesMetrics = txnDF.agg(
+      count("x").alias("")
+    )
 
   }
 }
