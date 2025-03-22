@@ -1,0 +1,10 @@
+.idea/
+bin/
+metastore_db/
+.gradle/
+.idea
+.metals
+.vscode
+metastore_db
+scala_data/
+scala_data
