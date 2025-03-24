@@ -1,4 +1,5 @@
 package com.payment.merchants
+import org.apache.spark.sql.functions._
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -39,9 +40,40 @@ object EnrichmentEngine {
 
 
   def main(args:Array[String]) :Unit = {
-    val sparkSession = DatasetUtils.getSparkSetup
-    sparkSession.sparkContext.setLogLevel("WARN")
+    // val sparkSession = DatasetUtils.getSparkSetup
+    // sparkSession.sparkContext.setLogLevel("WARN")
+        val spark = SparkSession.builder()
+      .appName("DebugShowNamespacesAndWrite")
+      .config("spark.sql.defaultCatalog", "myGlueCatalog")
+      .config("spark.sql.catalog.myGlueCatalog", "org.apache.iceberg.spark.SparkCatalog")
+      .config("spark.sql.catalog.myGlueCatalog.catalog-impl", "org.apache.iceberg.aws.glue.GlueCatalog")
+      .config("spark.sql.catalog.myGlueCatalog.warehouse", "s3a://iceberg-mentorhub/")
+      .config("spark.sql.catalog.myGlueCatalog.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
+      .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .config("spark.kryoserializer.buffer.max", "2000M")
+      .getOrCreate()
 
-    readTable(spark = sparkSession, table = "dev.users").show()
+    spark.sparkContext.setLogLevel("WARN")
+
+  import spark.implicits._
+   val trans =  readTable(spark, table = "dev.transactions")
+
+
+    //.out.println("total transactions record is"+trans.count() )
+    trans.show()
+    trans.explain(true)
+
+    val computedDF =
+
+      trans.filter($"status"==="REFUNDED")
+        .filter($"reason_code".isNull)
+        .select($"transaction_id",$"merchant_id",$"currency",$"status",$"payment_method",$"amount",$"reason_code")
+        .groupBy("merchant_id")
+        .agg(avg($"amount").as("avg_spend"),count("*").as("transaction_count"),sum($"amount").as("sum_amount_per_merchant"))
+    computedDF.show()
+    computedDF.explain(true)
+
+
   }
 }

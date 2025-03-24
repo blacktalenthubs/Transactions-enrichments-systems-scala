@@ -264,3 +264,144 @@
 | index_created_at     | TIMESTAMP            | Timestamp when the record was created in the index pipeline             | `2025-03-11 10:05:00`     |
 | any_other_derived    | MAP<STRING,STRING> or STRING (nullable) | Additional business logic output (e.g. `{"source":"mobile","region":"US"}`) | `"{driver=bolt}"`        |
 # Transactions-enrichments-systems-scala
+
+
+```markdown
+# Terraform Infrastructure for AWS (EMR, EKS, MSK)
+
+This Terraform configuration sets up a unified AWS environment with a VPC, subnets, and **optional** EMR, EKS, and MSK clusters. Toggle each service on or off via variables.
+
+
+## Prerequisites
+1. **Terraform** >= 1.2  
+2. **AWS CLI** or equivalent credentials  
+3. **IAM Permissions** to create VPC, EC2, EMR, MSK, EKS, S3, etc.
+
+## Usage
+1. **Clone this repo**:
+
+2. **Initialize and Plan**:
+   ```bash
+   terraform init
+   terraform plan -var="create_emr=true" -var="create_eks=false" -var="create_msk=false"
+   ```
+3. **Apply**:
+   ```bash
+   terraform apply -var="create_emr=true" -var="create_eks=false" -var="create_msk=false"
+   ```
+    - This creates a VPC, subnets, and an EMR cluster. Set `create_eks` or `create_msk` to `true` if needed.
+
+## Components
+- **VPC + Subnets**: Public and private subnets with an Internet Gateway.
+- **EMR** (optional): Spark/Hadoop cluster.
+- **EKS** (optional): Managed Kubernetes cluster.
+- **MSK** (optional): Apache Kafka cluster.
+
+## Cleanup
+When done, destroy all resources:
+```bash
+terraform destroy
+```
+
+---
+```
+
+Below is an updated script with a clear **usage** section at the top, along with an example on how to run it:
+
+```bash
+#!/bin/bash
+set -e
+
+###############################################################################
+# Usage:
+#   ./emr_deploy_and_submit.sh <CLUSTER_ID> <MAIN_CLASS> <S3_BUCKET_PATH> [spark-submit args...]
+#
+# Example:
+#   ./emr_deploy_and_submit.sh j-3ABCXYZ com.payment.merchants.EnrichmentEngine s3://my-bucket/jars \
+#       arg1 arg2
+# 
+#   This will:
+#   1) Build the fat jar with Gradle (shadowJar).
+#   2) Upload the resulting JAR to s3://my-bucket/jars/.
+#   3) Submit a Spark step to EMR cluster j-3ABCXYZ, using
+#      com.payment.merchants.EnrichmentEngine as the main class.
+#   4) Pass 'arg1 arg2' as additional arguments to Spark.
+###############################################################################
+
+if [ "$#" -lt 3 ]; then
+  echo "Usage: $0 <CLUSTER_ID> <MAIN_CLASS> <S3_BUCKET_PATH> [spark-submit args...]"
+  exit 1
+fi
+
+CLUSTER_ID="$1"
+MAIN_CLASS="$2"
+S3_BUCKET_PATH="$3"
+shift 3  # shift off the first three positional arguments
+
+echo "=== Starting EMR Deploy and Submit ==="
+echo "CLUSTER_ID:      $CLUSTER_ID"
+echo "MAIN_CLASS:      $MAIN_CLASS"
+echo "S3_BUCKET_PATH:  $S3_BUCKET_PATH"
+echo "Additional Args: $@"
+
+# 1) Build the fat jar with ShadowJar
+echo "=== Building fat jar with Gradle ==="
+./gradlew shadowJar
+
+# 2) Identify the jar file
+JAR_FILE=$(find build/libs -name "*-all.jar" | head -n 1)
+if [ -z "$JAR_FILE" ]; then
+  echo "Error: Could not find a fat jar in build/libs. Did shadowJar run successfully?"
+  exit 1
+fi
+echo "=== Found Jar: $JAR_FILE ==="
+
+# 3) Upload the jar to S3
+echo "=== Uploading Jar to $S3_BUCKET_PATH ==="
+aws s3 cp "$JAR_FILE" "$S3_BUCKET_PATH/"
+
+BASENAME=$(basename "$JAR_FILE")
+JAR_S3_PATH="$S3_BUCKET_PATH/$BASENAME"
+
+# 4) Submit the jar as a Spark step
+echo "=== Adding EMR Spark Step to cluster: $CLUSTER_ID ==="
+
+aws emr add-steps \
+  --cluster-id "$CLUSTER_ID" \
+  --steps Type=Spark,Name="EnrichmentStep",ActionOnFailure=CONTINUE,\
+Args=[--class,"$MAIN_CLASS","$JAR_S3_PATH","$@"]
+
+echo "=== EMR step submitted. Check the EMR console for progress. ==="
+```
+
+## How to Use This Script
+
+1. **Make it executable**:
+   ```bash
+   chmod +x emr_deploy_and_submit.sh
+   ```
+
+2. **Run the script** with the required arguments:
+
+   ```bash
+   ./emr_deploy_and_submit.sh <CLUSTER_ID> <MAIN_CLASS> <S3_BUCKET_PATH> [spark-submit args...]
+   ```
+
+    - **CLUSTER_ID**: Your EMR cluster ID (e.g., `j-3ABCXYZ`).
+    - **MAIN_CLASS**: The fully qualified main class of your Spark job (e.g., `com.payment.merchants.EnrichmentEngine`).
+    - **S3_BUCKET_PATH**: The S3 path where you want to upload the jar (e.g., `s3://my-bucket/jars`).
+    - **[spark-submit args...]**: Any additional arguments that your Spark job needs.
+
+   **Example**:
+   ```bash
+   ./emr_deploy_and_submit.sh j-3ABCXYZ com.payment.merchants.EnrichmentEngine s3://my-bucket/jars \
+       --driver-memory 4g --executor-memory 8g
+   ```
+
+   This will:
+    1. Compile and create the fat jar via Gradle (`shadowJar`).
+    2. Upload that jar to `s3://my-bucket/jars/`.
+    3. Submit a Spark step to the EMR cluster `j-3ABCXYZ` using `com.payment.merchants.EnrichmentEngine` as the main class.(You can run any Main class,but this Enrichment)
+    4. Pass the additional Spark configuration (`--driver-memory 4g --executor-memory 8g`) to Spark during execution.
+
+Check the **EMR console** → **Steps tab** to see the job progress and logs.

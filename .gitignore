@@ -8,3 +8,8 @@ metastore_db/
 metastore_db
 scala_data/
 scala_data
+.metals/
+.bloop
+spark-warehouse
+spark-warehouse/
+hs_err_pid80444.log
