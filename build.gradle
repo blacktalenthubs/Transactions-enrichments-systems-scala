@@ -12,59 +12,44 @@ repositories {
 }
 
 configurations {
+    // Some custom config if you want
     testImplementation {
         extendsFrom configurations.compileOnly
     }
 }
 
-configurations.all {
-    resolutionStrategy {
-        force 'com.fasterxml.jackson.core:jackson-databind:2.13.4',
-                'com.fasterxml.jackson.core:jackson-core:2.13.4',
-                'com.fasterxml.jackson.core:jackson-annotations:2.13.4',
-                'software.amazon.awssdk:s3:2.31.5',
-                'software.amazon.awssdk:sts:2.31.5',
-                'software.amazon.awssdk:glue:2.31.5',
-                'software.amazon.awssdk:kms:2.31.5',
-                'software.amazon.awssdk:url-connection-client:2.31.5'
-    }
-}
-
 dependencies {
-    // Mark Spark as compileOnly so the cluster’s Spark jars are used at runtime
+    // Mark Spark as compileOnly so the cluster's Spark jars are used at runtime
     compileOnly "org.apache.spark:spark-core_2.12:3.4.0"
     compileOnly "org.apache.spark:spark-sql_2.12:3.4.0"
+
+    // If you need Hive support
     compileOnly "org.apache.spark:spark-hive_2.12:3.4.0"
 
+    // Other normal libraries
     implementation "org.scala-lang:scala-library:2.12.15"
     implementation "com.typesafe:config:1.4.2"
     implementation "com.github.javafaker:javafaker:1.0.2"
 
-    // Iceberg dependencies (Spark 3.4 artifact)
+    // Iceberg
     implementation "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.8.1"
     runtimeOnly "org.apache.iceberg:iceberg-aws:1.8.1"
 
-    // Use Hadoop AWS but exclude the AWS SDK v1 bundle
+    // Hadoop AWS for s3a
     implementation("org.apache.hadoop:hadoop-aws:3.3.1") {
         exclude group: 'com.amazonaws', module: 'aws-java-sdk-bundle'
     }
 
-    // AWS SDK v2 modules forced to 2.31.5
+    // AWS SDK v2
     implementation "software.amazon.awssdk:glue:2.31.5"
     implementation "software.amazon.awssdk:s3:2.31.5"
     implementation "software.amazon.awssdk:sts:2.31.5"
     implementation "software.amazon.awssdk:url-connection-client:2.31.5"
     implementation "software.amazon.awssdk:kms:2.31.5"
 
+    // Testing
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.scalatest:scalatest_2.12:3.2.15"
-    // Add the JUnit Jupiter Engine to provide a TestEngine for the JUnit Platform
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.2"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.9.2"
-}
-
-test {
-    useJUnitPlatform()
 }
 
 application {

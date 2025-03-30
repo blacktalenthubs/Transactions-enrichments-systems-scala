@@ -343,7 +343,7 @@ resource "aws_emr_cluster" "spark_cluster" {
   }
   core_instance_group {
     instance_type  = "m5.xlarge"
-    instance_count = 50
+    instance_count = 3
   }
 
   log_uri                        = "s3://${aws_s3_bucket.emr_logs_bucket[count.index].id}/"

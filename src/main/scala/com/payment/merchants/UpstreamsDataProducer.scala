@@ -1,7 +1,8 @@
 package com.payment.merchants
 
 import com.github.javafaker.Faker
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.dsl.expressions.StringToAttributeConversionHelper
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.util.Locale
 import java.time.{LocalDate, ZoneId}
@@ -189,10 +190,10 @@ object UpstreamsDataProducer {
     val merchantCount = 80
    // val merchants     = generateMerchants(merchantCount)
 
-   val users =  UpstreamsDataProducer.generateUsers(100)
-    val merchants = UpstreamsDataProducer.generateMerchants(merchantCount)
-    val transactions = UpstreamsDataProducer.generateTransactions(50,merchants)
-    val locations = UpstreamsDataProducer.generateLocations(50)
+   val users =  generateUsers(100)
+    val merchants = generateMerchants(merchantCount)
+    val transactions =generateTransactions(50,merchants)
+    val locations = generateLocations(50)
 
     val transWrite = DatasetUtils.WriteDestinationConfig("data/transactions","dev.transactions")
     val usersWrite = DatasetUtils.WriteDestinationConfig("data/users","dev.users")
@@ -201,6 +202,8 @@ object UpstreamsDataProducer {
 
     import spark.implicits._
     val txnDF   = spark.createDataset(transactions).withColumn("ingested_at", current_timestamp())
+
+    txnDF.show()
     val merchDF = spark.createDataset(merchants).withColumn("ingested_at", current_timestamp())
     val userDF  = spark.createDataset(users).withColumn("ingested_at", current_timestamp())
     val locDF   = spark.createDataset(locations).withColumn("ingested_at", current_timestamp())
@@ -213,4 +216,23 @@ object UpstreamsDataProducer {
     DatasetUtils.writeDataToStorage(locDF,locationWrite)
 
   }
+
+
+  def generateSkewedTransactions(spark: SparkSession, numRows: Int): DataFrame = {
+    import spark.implicits._
+
+    val categories = Array("Books", "Grocery", "Electronics", "Clothing", "Shoes")
+    val rnd = new Random()
+
+    val data = (1 to numRows).map { _ =>
+      val isSkew = rnd.nextDouble() < 0.70 // 70% chance we pick the "hot" user
+      val userId = if (isSkew) "User_SK" else "User_" + (1000 + rnd.nextInt(9000))
+      val amount = rnd.nextDouble() * 500
+      val cat    = categories(rnd.nextInt(categories.length))
+      (userId, amount, cat)
+    }
+  spark.createDataFrame(data).toDF("userId", "amount", "category")
+  }
+
+
 }

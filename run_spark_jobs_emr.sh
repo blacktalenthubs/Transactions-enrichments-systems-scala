@@ -16,7 +16,7 @@ set -e
 #      com.payment.merchants.EnrichmentEngine as the main class.
 #   4) Pass 'arg1 arg2' as additional arguments to Spark.
 
-Note: You can then pass this script to your CICD or airflow jobs to run continuously
+#Note: You can then pass this script to your CICD or airflow jobs to run continuously
 ###############################################################################
 
 if [ "$#" -lt 3 ]; then
@@ -58,8 +58,14 @@ JAR_S3_PATH="$S3_BUCKET_PATH/$BASENAME"
 echo "=== Adding EMR Spark Step to cluster: $CLUSTER_ID ==="
 
 aws emr add-steps \
+  --no-cli-pager \
   --cluster-id "$CLUSTER_ID" \
   --steps Type=Spark,Name="EnrichmentStep",ActionOnFailure=CONTINUE,\
 Args=[--class,"$MAIN_CLASS","$JAR_S3_PATH","$@"]
 
 echo "=== EMR step submitted. Check the EMR console for progress. ==="
+
+
+# s3://mentorhub-emr-code-run/data/transactions-enrichment-systems-0.1.0-all.jar
+# s3://mentorhub-emr-code-run/data//transactions-enrichment-systems-0.1.0-all.jar
+

@@ -13,5 +13,7 @@ shift
 
 spark-submit \
   --class "$MAIN_CLASS" \
-  --master "local[4]" \
+  --master "local[*]" \
+  --driver-memory 4G \
+  --conf spark.executor.memory=4G \
   build/libs/transactions-enrichment-systems-0.1.0-all.jar "$@"

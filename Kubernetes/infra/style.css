@@ -1,0 +1,177 @@
+/* Base Styles */
+body {
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #333;
+  background-color: #f9f9f9;
+  margin: 20px;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-weight: bold;
+  color: #222;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+h1 {
+  font-size: 3em;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 0.5em;
+}
+h2 {
+  font-size: 2.5em;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+h3 {
+  font-size: 2em;
+}
+h4 {
+  font-size: 1.75em;
+}
+
+/* Paragraphs and Lists */
+p {
+  font-size: 1.125em;
+  margin-bottom: 1.5rem;
+  text-align: justify;
+}
+ul, ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+li {
+  margin: 0.75rem 0;
+}
+
+/* Container Styling: Wider and More Spaced Out */
+.html-content {
+  max-width: 1600px;  /* Increased max-width for a wider display */
+  width: 98%;
+  margin: 20px auto;
+  padding: 2rem 4rem;  /* More generous padding for spacious layout */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  font-size: 1.125em;
+}
+
+/* Code Block Styling - Lighter Background for Better Readability */
+.pre-container {
+  position: relative;
+  margin: 2rem 0;
+}
+pre {
+  background-color: #4a5568 !important;  /* Lighter background color */
+  color: #e2e8f0 !important;              /* Softer text color */
+  padding: 1.25rem;
+  border-left: 4px solid #718096;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: "Fira Code", Consolas, monospace;
+  font-size: 1em;
+  line-height: 1.5;
+  margin: 2rem 0;
+  user-select: text;                     /* Allow users to select and copy code */
+}
+code {
+  font-family: "Fira Code", Consolas, monospace;
+  background-color: #4a5568 !important;
+  color: #e2e8f0 !important;
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  font-size: 1em;
+  user-select: text;
+}
+
+/* Copy Button Styling for Code Blocks */
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #5e81ac;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.9em;
+  opacity: 0.85;
+  transition: opacity 0.3s;
+}
+.copy-btn:hover {
+  opacity: 1;
+}
+
+/* Table Styling */
+table {
+  background-color: #3b4252 !important;
+  color: #d8dee9 !important;
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+table th, table td {
+  border: 1px solid #5e81ac;
+  padding: 1rem;
+  text-align: left;
+}
+table th {
+  background-color: #4c566a !important;
+  font-weight: bold;
+}
+
+/* Locked Content Styling */
+.locked-content {
+  background: #fff4e5;
+  border: 1px solid #f7cd94;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  color: #70451c;
+  max-width: 600px;
+  margin: 2rem auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.locked-content p {
+  font-size: 1em;
+  margin-bottom: 1.5rem;
+}
+.locked-content .upgrade-btn {
+  background: #ff9800;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.locked-content .upgrade-btn:hover {
+  background: #e68a00;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  body {
+    margin: 10px;
+  }
+  .html-content {
+    padding: 1.5rem;
+    margin: 10px;
+    max-width: 100%;
+  }
+  h1 {
+    font-size: 2.5em;
+  }
+  h2 {
+    font-size: 2em;
+  }
+  h3 {
+    font-size: 1.75em;
+  }
+  p, li {
+    font-size: 1em;
+  }
+}

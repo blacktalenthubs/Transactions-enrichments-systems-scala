@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes Engineering</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="html-content">
+    <h1>Kubernetes Engineering</h1>
+
+    <h2>Overview</h2>
+    <p>This lecture covers practical applications of key Kubernetes concepts and the core architecture of Kubernetes clusters. We will explore the control plane, node components, networking, cluster setup, day-to-day operations, debugging, observability, and advanced workload patterns.</p>
+
+    <hr>
+
+    <h2>Core Architecture &amp; Components</h2>
+    <ul>
+      <li>
+        <strong>Master Plane:</strong>
+        <ul>
+          <li><strong>API Server:</strong> The entry point for all cluster operations. It validates and processes requests, updates etcd, and enforces authentication and authorization.</li>
+          <li><strong>Controller Manager:</strong> Runs control loops that ensure the actual cluster state matches the desired state (e.g., Deployment Controller, Node Controller).</li>
+          <li><strong>Scheduler:</strong> Assigns unassigned pods to nodes by filtering and scoring nodes based on resources and policies. Advanced scheduling includes taints/tolerations and node affinity.</li>
+          <li><strong>etcd:</strong> A distributed key-value store that holds the cluster’s state, using the Raft consensus algorithm. Regular backups are critical.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Node Plane:</strong>
+        <ul>
+          <li><strong>Kubelet:</strong> Runs on each node to manage pod lifecycles and report node/pod status back to the control plane.</li>
+          <li><strong>Kube Proxy:</strong> Manages network rules to route traffic from services to pods, using iptables or IPVS.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Networking Model:</strong>
+        <p>Kubernetes employs a flat networking model using CNI plugins (Calico, Flannel, etc.), where each pod gets its own unique IP address and can communicate without NAT. Services provide stable virtual IPs for internal access.</p>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Design Considerations</h2>
+    <ul>
+      <li>
+        <strong>Control Plane High Availability:</strong>
+        <ul>
+          <li>Deploy multiple API Server replicas behind a load balancer.</li>
+          <li>Run etcd as a cluster (typically three or five nodes) across different failure domains.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>etcd Backup Strategies:</strong>
+        <ul>
+          <li>Schedule regular snapshots and test restores.</li>
+          <li>Store backups securely (e.g., in AWS S3 with versioning).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Node Scalability (Horizontal Scaling):</strong>
+        <ul>
+          <li>Use Cluster Autoscaler to adjust node counts based on demand.</li>
+          <li>Configure the Horizontal Pod Autoscaler (HPA) to scale pods automatically.</li>
+          <li>Ensure pod resource requests/limits are set accurately.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Cluster Setup &amp; Day-to-Day Operations</h2>
+    <p><strong>Key Topics:</strong></p>
+    <ul>
+      <li>Installing and configuring clusters (from Minikube to managed solutions like EKS).</li>
+      <li>RBAC controls, resource quotas, and horizontal pod autoscaling.</li>
+      <li>Taints &amp; tolerations to reserve nodes for specialized workloads.</li>
+      <li>Multi-zone versus single-zone deployments and upgrade strategies (rolling vs. blue/green).</li>
+    </ul>
+
+    <hr>
+
+    <h2>Debugging &amp; Observability</h2>
+    <ul>
+      <li>
+        <strong>Debugging Tools:</strong>
+        <ul>
+          <li><code>kubectl logs</code> – View pod logs (use <code>-f</code> for real-time).</li>
+          <li><code>kubectl describe</code> – Get detailed resource information including events.</li>
+          <li><code>kubectl exec</code> – Execute commands inside pods (e.g., <code>nvidia-smi</code> on GPU pods).</li>
+          <li><code>kubectl get events</code> – List recent cluster events.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Observability Stack:</strong>
+        <ul>
+          <li><strong>Metrics Server:</strong> Collects basic metrics for HPA and <code>kubectl top</code>.</li>
+          <li><strong>Prometheus &amp; Grafana:</strong> For detailed monitoring, alerting, and visualization.</li>
+          <li>Integrate exporters such as NVIDIA GPU Exporter for GPU metrics.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Advanced Workload Patterns &amp; GPU Integration</h2>
+    <ul>
+      <li>
+        <strong>Workload Types:</strong>
+        <ul>
+          <li><strong>DaemonSet:</strong> Ensures a copy of a pod runs on every (or a subset of) node. Useful for logging or monitoring agents.</li>
+          <li><strong>StatefulSet:</strong> Manages stateful applications with stable identities and persistent storage, ideal for databases.</li>
+          <li><strong>Job/CronJob:</strong> Runs pods to completion or on a schedule for batch processing tasks.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>GPU Integration:</strong>
+        <ul>
+          <li>Use NVIDIA device plugins for GPU scheduling.</li>
+          <li>Apply node taints and tolerations to ensure only GPU workloads run on GPU nodes.</li>
+          <li>Set resource limits for GPU usage (e.g., <code>nvidia.com/gpu: 1</code>).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Security &amp; Best Practices</h2>
+    <ul>
+      <li>
+        <strong>Network Policies:</strong> Enforce communication rules between pods (using Calico or Cilium).
+      </li>
+      <li>
+        <strong>Pod Security Context:</strong> Configure security settings at the pod or container level (e.g., non-root, read-only root filesystem).
+      </li>
+      <li>
+        <strong>Secrets Management:</strong> Use Kubernetes Secrets or external tools like Vault for sensitive data.
+      </li>
+      <li>
+        <strong>Admission Controllers:</strong> Implement policies using OPA/Gatekeeper to enforce compliance.
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Hands-On: Cluster Setup and Operations</h2>
+    <h3>Using Minikube for a Multi-Node Cluster</h3>
+    <ol>
+      <li>
+        <strong>Delete Existing Cluster:</strong>
+        <pre><code>minikube delete</code></pre>
+      </li>
+      <li>
+        <strong>Create New Cluster with 3 Nodes:</strong>
+        <pre><code>minikube start --nodes 3 --driver=docker</code></pre>
+        <p>If there’s an error, start a single-node cluster first and then add nodes:</p>
+        <pre><code>minikube start --driver=docker
+minikube node add node2
+minikube node add node3</code></pre>
+      </li>
+      <li>
+        <strong>Verify Nodes:</strong>
+        <pre><code>minikube node list</code></pre>
+      </li>
+      <li>
+        <strong>Check Cluster Status:</strong>
+        <pre><code>kubectl get nodes -o wide</code></pre>
+      </li>
+    </ol>
+
+    <h3>Taints &amp; Tolerations Example</h3>
+    <ol>
+      <li>
+        <strong>Add a Taint to a Node:</strong>
+        <pre><code>kubectl taint nodes minikube-m02 app=nginx:NoSchedule</code></pre>
+      </li>
+      <li>
+        <strong>Create a Basic Nginx Deployment (Without Toleration):</strong>
+        <pre><code>kubectl create deployment nginx --image=nginx:alpine
+kubectl get pods -o wide</code></pre>
+        <p>Observation: Pods will not schedule on the tainted node.</p>
+      </li>
+      <li>
+        <strong>Create a Tolerated Nginx Deployment:</strong>
+        <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-tolerated
+  namespace: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      tolerations:
+      - key: "app"
+        operator: "Equal"
+        value: "nginx"
+        effect: "NoSchedule"
+      containers:
+      - name: nginx
+        image: nginx:alpine</code></pre>
+        <p>Apply the deployment with:</p>
+        <pre><code>kubectl apply -f nginx-tolerated.yaml</code></pre>
+      </li>
+    </ol>
+
+    <h3>Verify Taint Enforcement</h3>
+    <pre><code>kubectl scale deployment nginx --replicas=5
+kubectl get pods -o wide</code></pre>
+    <p>Observation: Original nginx pods will avoid the tainted node while tolerated pods will be scheduled across all nodes.</p>
+
+    <h3>Clean Up</h3>
+    <pre><code>kubectl taint nodes minikube-m02 app:NoSchedule-
+kubectl delete deployment nginx nginx-tolerated</code></pre>
+
+    <hr>
+
+    <h2>Debugging &amp; Observability</h2>
+    <h3>Key Debugging Commands</h3>
+    <ul>
+      <li>
+        <strong>kubectl logs</strong> – Retrieve pod logs. Example:
+        <pre><code>kubectl logs -n production gpu-nginx-xyz --tail=100</code></pre>
+      </li>
+      <li>
+        <strong>kubectl describe</strong> – Get detailed resource info including events:
+        <pre><code>kubectl describe pod gpu-nginx-xyz -n production | grep -A 20 Events</code></pre>
+      </li>
+      <li>
+        <strong>kubectl exec</strong> – Execute commands in a running container:
+        <pre><code>kubectl exec -it gpu-nginx-xyz -n production -- nvidia-smi</code></pre>
+      </li>
+      <li>
+        <strong>kubectl get events</strong> – List recent events:
+        <pre><code>kubectl get events --field-selector=involvedObject.kind=Pod --sort-by=.lastTimestamp</code></pre>
+      </li>
+    </ul>
+
+    <h2>Cluster Networking: Service Types &amp; Traffic Flow</h2>
+    <h3>Service Types</h3>
+    <ul>
+      <li>
+        <strong>ClusterIP:</strong> The default service type providing an internal IP.
+        <pre><code>kubectl get svc
+# Example output:
+# NAME         TYPE        CLUSTER-IP    PORT(S)   AGE
+# kubernetes   ClusterIP   10.96.0.1     443/TCP   8d</code></pre>
+      </li>
+      <li>
+        <strong>NodePort:</strong> Exposes the service externally on a static port.
+        <pre><code>kubectl get svc
+# Example output:
+# NAME            TYPE       CLUSTER-IP     PORT(S)        AGE
+# nginx-service   NodePort   10.99.77.189   80:30080/TCP   20s</code></pre>
+      </li>
+    </ul>
+    <h3>How Traffic Flows for NodePort</h3>
+    <ol>
+      <li>External requests are sent to <code>&lt;NodeIP&gt;:30080</code>.</li>
+      <li>Kube-proxy on the node routes the traffic to the ClusterIP (e.g., <code>10.99.77.189:80</code>).</li>
+      <li>The service then forwards the request to one of the backing Pods.</li>
+    </ol>
+    <p>View service details with:</p>
+    <pre><code>kubectl describe svc nginx-service</code></pre>
+
+    <hr>
+
+    <h2>Advanced Concepts &amp; Troubleshooting</h2>
+    <h3>Upgrade Strategies</h3>
+    <ul>
+      <li><strong>Rolling Upgrades:</strong> Gradually replace pods to minimize downtime.</li>
+      <li><strong>Blue/Green Deployments:</strong> Deploy a new version alongside the current one and switch traffic once verified.</li>
+    </ul>
+
+    <h3>Taints &amp; Tolerations</h3>
+    <p>
+      Taints allow you to mark nodes so that only pods with matching tolerations can be scheduled on them.
+    </p>
+    <pre><code>kubectl taint nodes minikube-m02 app=nginx:NoSchedule</code></pre>
+    <p>
+      In your pod spec, include a toleration:
+    </p>
+    <pre><code>tolerations:
+- key: "app"
+  operator: "Equal"
+  value: "nginx"
+  effect: "NoSchedule"</code></pre>
+
+    <hr>
+
+    <h2>Real-World Use Cases & Troubleshooting</h2>
+    <ul>
+      <li>
+        <strong>Resource Quotas:</strong> Enforce CPU, memory, and pod limits to prevent resource contention.
+      </li>
+      <li>
+        <strong>Autoscaling:</strong> Use Horizontal Pod Autoscaler (HPA) to dynamically adjust replicas based on load.
+      </li>
+      <li>
+        <strong>Node Failure Simulation:</strong>
+        <pre><code>kubectl cordon minikube-m02
+kubectl drain minikube-m02 --ignore-daemonsets --delete-emptydir-data</code></pre>
+      </li>
+      <li>
+        <strong>Debugging CrashLoopBackOff:</strong>
+        <pre><code>kubectl logs <pod> --previous
+kubectl describe pod <pod></code></pre>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>Summary</h2>
+    <ul>
+      <li>Kubernetes clusters consist of a control plane and worker nodes, with key components including the API Server, Scheduler, and Kubelet.</li>
+      <li>Service types like ClusterIP and NodePort enable internal and external communication respectively.</li>
+      <li>Taints and tolerations, along with RBAC and resource quotas, help enforce workload isolation and security.</li>
+      <li>Advanced scheduling and persistent storage strategies are critical for high availability and scalability.</li>
+      <li>Debugging and observability tools (kubectl commands, Prometheus, Grafana) are essential for maintaining cluster health.</li>
+    </ul>
+
+    <h2>Next Steps</h2>
+    <ul>
+      <li>Lab 1: Deploy a StatefulSet for a database with persistent storage.</li>
+      <li>Lab 2: Create a CronJob to clean up temporary files daily.</li>
+      <li>Lab 3: Simulate resource fragmentation and optimize node utilization.</li>
+    </ul>
+  </div>
+</body>
+</html>
