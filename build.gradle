@@ -12,26 +12,42 @@ repositories {
 }
 
 configurations {
-    // Some custom config if you want
     testImplementation {
         extendsFrom configurations.compileOnly
     }
 }
 
 dependencies {
-    // Mark Spark as compileOnly so the cluster's Spark jars are used at runtime
+    // --------------------------------------------------------------------------------
+    // Spark Core & Spark SQL (compileOnly: provided by cluster or local Spark)
+    // --------------------------------------------------------------------------------
     compileOnly "org.apache.spark:spark-core_2.12:3.4.0"
     compileOnly "org.apache.spark:spark-sql_2.12:3.4.0"
+    // For Hive support, if needed
+    // compileOnly "org.apache.spark:spark-hive_2.12:3.4.0"
 
-    // If you need Hive support
-    compileOnly "org.apache.spark:spark-hive_2.12:3.4.0"
+    // --------------------------------------------------------------------------------
+    // Spark Structured Streaming + Kafka
+    // Use "implementation" if you want these packaged in your fat JAR
+    // so you can run Spark streaming jobs locally without a Spark cluster environment.
+    // --------------------------------------------------------------------------------
+    implementation "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0"
+    implementation "org.apache.kafka:kafka-clients:3.4.0"
 
-    // Other normal libraries
+    // --------------------------------------------------------------------------------
+    // Scala library
+    // --------------------------------------------------------------------------------
     implementation "org.scala-lang:scala-library:2.12.15"
+
+    // --------------------------------------------------------------------------------
+    // Other libs
+    // --------------------------------------------------------------------------------
     implementation "com.typesafe:config:1.4.2"
     implementation "com.github.javafaker:javafaker:1.0.2"
 
+    // --------------------------------------------------------------------------------
     // Iceberg
+    // --------------------------------------------------------------------------------
     implementation "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.8.1"
     runtimeOnly "org.apache.iceberg:iceberg-aws:1.8.1"
 
@@ -47,7 +63,9 @@ dependencies {
     implementation "software.amazon.awssdk:url-connection-client:2.31.5"
     implementation "software.amazon.awssdk:kms:2.31.5"
 
+    // --------------------------------------------------------------------------------
     // Testing
+    // --------------------------------------------------------------------------------
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.scalatest:scalatest_2.12:3.2.15"
 }

@@ -217,22 +217,4 @@ object UpstreamsDataProducer {
 
   }
 
-
-  def generateSkewedTransactions(spark: SparkSession, numRows: Int): DataFrame = {
-    import spark.implicits._
-
-    val categories = Array("Books", "Grocery", "Electronics", "Clothing", "Shoes")
-    val rnd = new Random()
-
-    val data = (1 to numRows).map { _ =>
-      val isSkew = rnd.nextDouble() < 0.70 // 70% chance we pick the "hot" user
-      val userId = if (isSkew) "User_SK" else "User_" + (1000 + rnd.nextInt(9000))
-      val amount = rnd.nextDouble() * 500
-      val cat    = categories(rnd.nextInt(categories.length))
-      (userId, amount, cat)
-    }
-  spark.createDataFrame(data).toDF("userId", "amount", "category")
-  }
-
-
 }

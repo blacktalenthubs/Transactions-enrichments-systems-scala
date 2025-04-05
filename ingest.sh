@@ -16,4 +16,7 @@ spark-submit \
   --master "local[*]" \
   --driver-memory 4G \
   --conf spark.executor.memory=4G \
+  --conf spark.driver.bindAddress=127.0.0.1 \
+  --conf spark.driver.host=127.0.0.1 \
+  --conf spark.local.host=127.0.0.1 \
   build/libs/transactions-enrichment-systems-0.1.0-all.jar "$@"
