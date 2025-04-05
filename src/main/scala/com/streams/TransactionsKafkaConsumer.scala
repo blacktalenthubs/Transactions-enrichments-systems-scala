@@ -6,6 +6,7 @@ import org.apache.spark.sql.types._
 
 object TransactionsKafkaConsumer {
 
+  //todo yemi to implement fraudSignal consumer
   // Define a schema matching the JSON structure in the topic
   val transactionSchema = new StructType()
     .add("tx_id", StringType)
@@ -16,6 +17,8 @@ object TransactionsKafkaConsumer {
     .add("status", StringType)
     .add("failure_reason", StringType)
     .add("payment_method", StringType)
+
+
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()

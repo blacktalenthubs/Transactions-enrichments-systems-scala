@@ -13,3 +13,5 @@ scala_data
 spark-warehouse
 spark-warehouse/
 hs_err_pid80444.log
+infra/
+infra

@@ -20,6 +20,9 @@ object ContinuousTransactionsProducer {
                            payment_method: String
                          )
 
+  //todo Yemi to implements fraudSignal streams ingestions
+
+
   // Simple transaction generator
   def generateTransactions(numTx: Int): Seq[Transactions] = {
     val faker          = new Faker(new Locale("en-US"))
