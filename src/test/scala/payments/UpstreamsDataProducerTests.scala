@@ -82,4 +82,13 @@ class UpstreamsDataProducerTests extends AnyFunSuite with Matchers with BeforeAn
     ids shouldEqual Array(1)
   }
 
+  test("Spark SQL query execution should return the expected result 2") {
+    import spark.implicits._
+    val df = Seq((1, "a"), (2, "b")).toDF("id", "letter")
+    df.createOrReplaceTempView("test_table")
+    val result = spark.sql("SELECT id FROM test_table WHERE letter = 'a'")
+    val ids = result.collect().map(_.getInt(0))
+    ids shouldEqual Array(1)
+  }
+
 }
